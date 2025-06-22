@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>What do you need to hear today?</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.0/p5.min.js"></script>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            font-family: Arial, sans-serif;
+        }
+        canvas {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <script>
+        let quotes = [
+            "Als er niks verandert, verandert er niks",
+            "You are already blessed in so many ways, focus on that",
+            "Acting like you don't care is not letting go",
+            "There's a future version of me who's proud I was strong enough",
+            "Neem geen kritiek van iemand waar je geen advies van zou nemen",
+            "Be where your feet are",
+            "1 keer is een foutje, 2 keer is een keus",
+            "Groei is niet lineair",
+            "Don't make yourself uncomfortable just to make others comfortable",
+            "I hope things get simpeler for you, peaceful",
+            "I hope it comes your way soon",
+            "It will work out better than you imagined",
+            "Failure is part of succes",
+            "Plot twist: it all goes well and it keeps getting better",
+            "Weet je nog toen je alles wilde wat je nu hebt?",
+            "Someone still smiles when they remember a moment with you",
+            "Someone still remembers een compliment you gave them and it boosts their confidence",
+            "You're safe. It's just thoughts",
+            "Today is the youngest you'll ever be again and the oldest you've been",
+            "Life doesn't end when you open up to someone",
+            "Life doesn't end when you let go of someone you loved",
+            "Life doesn't end when you dissapoint your parents",
+            "Life doesn't end when you start talking about your past",
+            "Life doesn't end when something doesn't go as planned",
+            "Life doesn't end when you gain weight",
+            "Life doesn't end when you get rejected",
+            "Je mag heel trots zijn op jezelf, je doet het heel goed",
+            "Het komt altijd goed, denk maar aan die ene keer toen je dacht dat het niet goed kwam",
+            "Uniek zijn is een gegeven",
+            "De wereld is liever voor je dan je denkt",
+            "Life doesn't end when you open up to someone",
+            "Eis veel van jezelf, verwacht weinig van anderen, dat bespaart je veel ergernis",
+            "Hé kanjer, je mag echt wel wat meer op jezelf vertrouwen",
+            "Positieve mensen hebben ook negatieve gedachten. Dat is normaal. Alleen laten ze deze gedachten niet onnodig groeien",
+            "Er zal niemand zijn waarmee je zo veel praat als met jezelf. Maak er een leuk, positief en opbeurend gesprek van. Zo vaak als mogelijk.",
+            "Breng tijd door met de mensen die je energie geven. Niet met mensen die je energie vreten",
+            "je hebt genoeg tijd om alles wat je wil doen. Er is geen haast",
+            "Praat erover. Hoe vaak je ook wilt",
+            "Neem geen afscheid met ruzie",
+            "You get what you fight for, not what you wish for",
+            "Laat jezelf niet minder leuk maken door je aan te passen aan iemand anders",
+            "Je doel zal je energie geven",
+            "The chains that hold you back were never put there by someone else",
+            "Om hulp vragen betekent niet dat je opgeeft, het betekent dat je weigert op te geven",
+            "If you ever get the chance to treat them the way they treated you, I hope you choose to walk away and do better",
+            "Day to day what you choose, what you think and what you do is who you become",
+            "Wie je wordt is belangrijker dan wie je bent geweest",
+            "Wees geduldig, al het mooie waar je je best voor doet, is naar je onderweg",
+            "Maak van jezelf een prioriteit. Jij bent de enige die er altijd zal zijn.",
+            "Een mooi uiterlijk begint bij een mooie ziel",
+            "Hou van anderen vanuit je hart en niet vanuit je behoeften"
+        ];
+
+        let selectedQuote = "";
+        let quoteActive = false;
+        let sizeFactor = 0.05;
+        let growing = true;
+        let img;
+
+        let flashCounter = 0;
+        let flashDuration = 60;
+        let flashInterval = 1;
+        let flashPhase = true;
+
+        let promptY;
+        let promptTargetY;
+        let promptSliding = false;
+
+        function preload() {
+            // Create a simple heart shape using p5.js instead of loading external image
+            // This ensures the sketch works without needing to host the image file
+        }
+
+        function setup() {
+            createCanvas(windowWidth, windowHeight);
+            textAlign(CENTER, CENTER);
+            rectMode(CENTER);
+            promptY = height / 2;
+            promptTargetY = 80;
+            noLoop();
+        }
+
+        function draw() {
+            background(255);
+
+            // Prompt slide
+            if (promptSliding) {
+                promptY = lerp(promptY, promptTargetY, 0.05);
+                if (abs(promptY - promptTargetY) < 1) {
+                    promptY = promptTargetY;
+                    promptSliding = false;
+                }
+            }
+
+            drawPrompt(promptY);
+
+            if (quoteActive) {
+                // Draw heart shape instead of image
+                push();
+                translate(width / 2, height / 2 + 50);
+                scale(sizeFactor);
+                drawHeart();
+                pop();
+
+                // Puls
+                if (growing) {
+                    sizeFactor += 0.001;
+                    if (sizeFactor > 0.2) growing = false;
+                } else {
+                    sizeFactor -= 0.005;
+                    if (sizeFactor < 0.1) growing = true;
+                }
+
+                // Flash-fase
+                if (flashPhase) {
+                    if (frameCount % flashInterval === 0) {
+                        selectRandomQuote();
+                    }
+                    flashCounter++;
+                    if (flashCounter >= flashDuration) {
+                        flashPhase = false;
+                    }
+                }
+
+                // Quote tonen
+                fill(0);
+                textSize(24);
+                text(selectedQuote, width / 2, height - 80, width * 0.8);
+            }
+        }
+
+        function drawHeart() {
+            fill(255, 100, 150);
+            noStroke();
+            
+            // Simple heart shape using bezier curves
+            beginShape();
+            vertex(0, 20);
+            bezierVertex(-50, -20, -100, -20, -50, 20);
+            bezierVertex(-50, 40, 0, 80, 0, 80);
+            bezierVertex(0, 80, 50, 40, 50, 20);
+            bezierVertex(100, -20, 50, -20, 0, 20);
+            endShape(CLOSE);
+        }
+
+        function drawPrompt(y) {
+            fill(50);
+            textAlign(CENTER, CENTER);
+
+            if (width < 400) textSize(20);
+            else if (width < 600) textSize(26);
+            else textSize(32);
+            text("What do you need to hear today?", width / 2, y - 20);
+
+            textSize(15);
+            text("Random advice from strangers to strangers: tap to unlock", width / 2, y + 10);
+            text("@olinland_ / @coolgirlolin", width / 2, y + 40);
+        }
+
+        function selectRandomQuote() {
+            let index = int(random(quotes.length));
+            selectedQuote = quotes[index];
+        }
+
+        function userInteracted() {
+            if (!quoteActive) {
+                try {
+                    if (getAudioContext) {
+                        getAudioContext().resume();
+                    }
+                } catch(e) {
+                    // Audio context not available, continue anyway
+                }
+                quoteActive = true;
+                flashCounter = 0;
+                flashPhase = true;
+                promptSliding = true;
+                loop();
+            }
+            return false;
+        }
+
+        function mousePressed() {
+            userInteracted();
+            return false;
+        }
+
+        function touchStarted() {
+            userInteracted();
+            return false;
+        }
+
+        function touchEnded(event) {
+            if (event) event.preventDefault();
+            userInteracted();
+            return false;
+        }
+
+        function windowResized() {
+            resizeCanvas(windowWidth, windowHeight);
+            promptY = quoteActive ? 80 : height / 2;
+            promptTargetY = 80;
+        }
+    </script>
+</body>
+</html>
